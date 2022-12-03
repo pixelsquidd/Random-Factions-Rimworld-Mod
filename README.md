@@ -6,7 +6,7 @@ Randomly add factions instead of choosing them manually. Every world is unique!
 ## Why Random Factions?
 If you like installing mods that add new factions and xenotypes, you quickly accumulate a large number of factions. Adding them all to each world is tedious, and you don't really need 3 flavors (pirate, rough, & civil) of every single new culture you added to the game.
 
-Wouldn't it be much more fun to have every world to have a different and unique combinations of factions?
+Wouldn't it be much more fun if world had a different and unique combinations of factions?
 
 Of course it's more fun, and now you can! Just fill your faction list with a dozen rando's and presto! 
 
