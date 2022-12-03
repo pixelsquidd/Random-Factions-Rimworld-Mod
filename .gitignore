@@ -1,0 +1,5 @@
+temp/*
+build/*
+run/*
+__pycache__/*
+**/__pycache__/*
