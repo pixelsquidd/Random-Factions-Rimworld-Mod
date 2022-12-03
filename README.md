@@ -17,7 +17,7 @@ Of course it's more fun, and now you can! Just fill your faction list with a doz
 ## Installation and Requirements
 This mod depends on the [HugsLib](steam://url/CommunityFilePage/818773962) mod. Please make sure you install that mod first and have it load before this one.
 
-You can install this mod directly from the Steam Workshop (TODO: link to steam workshop). To manually install, simply download the latest .zip file from the [Releases](https://github.com/DrPlantabyte/Random-Factions-Rimworld-Mod/releases) page and extract the **RandomFactions** folder into the *Mods* folder of your Rimworld install (typically located at *C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\*)
+You can install this mod directly from the [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=2896649114). To manually install, simply download the latest .zip file from the [Releases](https://github.com/DrPlantabyte/Random-Factions-Rimworld-Mod/releases) page and extract the **RandomFactions** folder into the *Mods* folder of your Rimworld install (typically located at *C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\*)
 
 ## How to use this mod
 Random factions adds 4 placeholder factions (see below), each of which is randomly replaced with another faction. Dr. Plantabyte personally recommends 4 random, 2 civil, 2 rough, and 1 pirate factions, plus 1 each of Mechanoid hive and Insect geneline, but you can do any combination you want.
