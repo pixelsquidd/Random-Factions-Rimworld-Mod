@@ -40,6 +40,9 @@ Note: Hidden factions such as Mechanoids Hive, Insect Genelineand the Empire wil
 - Random Pirate Faction: replaced with a randomly selected permanently hostile faction
 
 ## Integration With Other Mods
+Any mod that adds a new faction will automatically be detected by Random Factions and will randomly be added to the world when you use the random selection factions described above.
+
+In addition, the following mods unlock extra features when installed alongside Random Factions:
 
 ### Faction Control
 Random Factions does not interfere with [Faction Control](https://steamcommunity.com/sharedfiles/filedetails/?id=2882785581), but changing the faction frequencies in Faction Control will have no affect on the chance of a faction being added by Random Factions.
