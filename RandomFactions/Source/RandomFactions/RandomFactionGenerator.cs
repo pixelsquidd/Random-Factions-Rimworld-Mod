@@ -62,6 +62,12 @@ public class RandomFactionGenerator
         var newFaction = randomNeutralFaction(priorFactions);
         return replaceFaction(faction, newFaction, priorFactions);
     }
+    public Faction replaceWithRandomNamedFaction(Faction faction, params string[] validDefNames)
+    {
+        var priorFactions = this.world.factionManager.AllFactions;
+        var newFaction = randomNamedFaction(priorFactions, validDefNames);
+        return replaceFaction(faction, newFaction, priorFactions);
+    }
 
     private Faction replaceFaction(Faction oldFaction, Faction newFaction, IEnumerable<Faction> priorFactions)
     {
@@ -149,6 +155,15 @@ public class RandomFactionGenerator
         var fdefList = FactionDefFilter.filterFactionDefs(this.definedFactionDefs,
             new PlayerFactionDefFilter(false), new HiddenFactionDefFilter(false),
             new PermanentEnemyFactionDefFilter(false), new NaturalEnemyFactionDefFilter(false)
+            );
+        var fdef = drawRandomFactionDef(fdefList, existingFactions);
+        return generateFactionFromDef(fdef, existingFactions);
+    }
+
+    public Faction randomNamedFaction(IEnumerable<RimWorld.Faction> existingFactions, params string[] nameList)
+    {
+        var fdefList = FactionDefFilter.filterFactionDefs(this.definedFactionDefs,
+            new PlayerFactionDefFilter(false), new FactionDefNameFilter(nameList)
             );
         var fdef = drawRandomFactionDef(fdefList, existingFactions);
         return generateFactionFromDef(fdef, existingFactions);

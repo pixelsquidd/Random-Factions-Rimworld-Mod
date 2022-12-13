@@ -1,4 +1,5 @@
 ﻿using HugsLib.Logs;
+using HugsLib.Settings;
 using HugsLib.Utils;
 using RimWorld;
 using RimWorld.Planet;
@@ -12,6 +13,9 @@ namespace RandomFactions
 
     public class RandomFactionsMod : HugsLib.ModBase
     {
+        private SettingHandle<bool> removeOtherFactions;
+        private Dictionary<FactionDef, int> zeroCountRecord = new Dictionary<FactionDef, int>();
+        private Dictionary<FactionDef, int> randCountRecord = new Dictionary<FactionDef, int>();
         public static string RANDOM_CATEGORY_NAME = "Random";
         public RandomFactionsMod() {
             // constructor (invoked by reflection, do not add parameters)
@@ -85,6 +89,81 @@ Called after all Defs are loaded.
 This happens when game loading has completed, after Initialize is called. This is a good time to inject any Random defs. Make sure you call HugsLib.InjectedDefHasher.GiveShortHasToDef on any defs you manually instantiate to avoid def collisions (it's a vanilla thing).
 Since A17 it no longer matters where you initialize your settings handles, since the game automatically restarts both when the mod configuration or the language changes. This means that both Initialize and DefsLoaded are only ever called once per ModBase instance.*/
             base.DefsLoaded();
+            removeOtherFactions = Settings.GetHandle<bool>(
+            "removeOtherFactions",
+            "Re-organise Factions",
+            "Removes all non-random factions from the starting faction list in the New World screen during New Colony creation.",
+            true);
+
+            if (removeOtherFactions.Value == true) {
+                zeroCountFactionDefs();
+            }
+        }
+
+        public override void SettingsChanged()
+        {
+            /*
+Called after the player closes the Mod Settings dialog after changing any setting.
+Note, that the setting changed may belong to another mod.*/
+            base.SettingsChanged();
+            if (removeOtherFactions.Value == true)
+            {
+                zeroCountFactionDefs();
+            } else
+            {
+                undoZeroCountFactionDefs();
+            }
+        }
+
+        private void zeroCountFactionDefs()
+        {
+            /*
+            var hasVFEMechanoids = false;
+            var hasVFEInsects = false;
+            foreach (var m in Verse.ModLister.AllInstalledMods)
+            {
+                if (m.PackageId.EqualsIgnoreCase("OskarPotocki.VFE.Mechanoid")) { hasVFEMechanoids = true; }
+                if (m.PackageId.EqualsIgnoreCase("OskarPotocki.VFE.Insectoid")) { hasVFEInsects = true; }
+            }*/
+            foreach (var def in DefDatabase<FactionDef>.AllDefs)
+            {
+                if (!def.hidden && !def.isPlayer && !RANDOM_CATEGORY_NAME.EqualsIgnoreCase(def.categoryTag))
+                {
+                    zeroCountRecord[def] = def.startingCountAtWorldCreation; // save for later undo operation
+                    def.startingCountAtWorldCreation = 0;
+                }/*
+                else if ("Mechanoid".EqualsIgnoreCase(def.defName) && hasVFEMechanoids)
+                {
+                    def.startingCountAtWorldCreation = 0;
+                }
+                else if ("Insect".EqualsIgnoreCase(def.defName) && hasVFEInsects)
+                {
+                    def.startingCountAtWorldCreation = 0;
+                }*/
+            }
+
+            foreach (var def in randCountRecord.Keys)
+            {
+                var val = randCountRecord[def];
+                def.startingCountAtWorldCreation = val;
+            }
+        }
+
+        private void undoZeroCountFactionDefs()
+        {
+            foreach (var def in zeroCountRecord.Keys)
+            {
+                var val = zeroCountRecord[def];
+                def.startingCountAtWorldCreation = val;
+            }
+            foreach (var def in DefDatabase<FactionDef>.AllDefs)
+            {
+                if (RANDOM_CATEGORY_NAME.EqualsIgnoreCase(def.categoryTag))
+                {
+                    randCountRecord[def] = def.startingCountAtWorldCreation;
+                    def.startingCountAtWorldCreation = 0;
+                }
+            }
         }
 
         public override void Update()
@@ -188,7 +267,16 @@ This is only called after the game has started, not on the "select landing spot"
                 else if (pfFac.def.defName.EqualsIgnoreCase("RF_RandomTradeFaction"))
                 {
                     fgen.replaceWithRandomNonHiddenTraderFaction(pfFac);
-                } else
+                }
+                else if (pfFac.def.defName.EqualsIgnoreCase("RF_RandomMechanoid"))
+                {
+                    fgen.replaceWithRandomNamedFaction(pfFac, "Mechanoid", "VFE_Mechanoid");
+                }
+                else if (pfFac.def.defName.EqualsIgnoreCase("RF_RandomInsectoid"))
+                {
+                    fgen.replaceWithRandomNamedFaction(pfFac, "Insect", "VFEI_Insect");
+                }
+                else
                 {
                     Logger.Warning("Faction defName {0} not recognized! Cannot replace faction {1} ({2})", pfFac.def.defName, pfFac.Name, pfFac.def.defName);
                 }
@@ -237,14 +325,6 @@ Will be called even if the player is on the world map and no map is currently lo
 Will not be called on the "select landing spot" world map.
 */
             base.Tick(currentTick);
-        }
-
-        public override void SettingsChanged()
-        {
-            /*
-Called after the player closes the Mod Settings dialog after changing any setting.
-Note, that the setting changed may belong to another mod.*/
-            base.SettingsChanged();
         }
 
         public override void ApplicationQuit()
