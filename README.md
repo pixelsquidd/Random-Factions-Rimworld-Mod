@@ -48,7 +48,7 @@ Random Factions does not interfere with [Faction Control](https://steamcommunity
 If [VFE Mechanoids](https://steamcommunity.com/sharedfiles/filedetails/?id=2329011599) is also installed, then Random Factions will add another random faction called "random mechanoid", which has a 50-50 chance of turning into either the vanilla Mechanoid Hive faction of the VFE Mechanoid Swarm faction.
 
 ### Vanilla Factions Expanded - Insectoids
-If [VFE Insectoids](https://steamcommunity.com/sharedfiles/filedetails/?id=2149755445) is also installed, then Random Factions will add another random faction called "random insectoid", which has a 50-50 chance of turning into either the vanilla Insect Hive faction of the VFE Insect Geneline faction.
+If [VFE Insectoids](https://steamcommunity.com/sharedfiles/filedetails/?id=2149755445) is also installed, then Random Factions will add another random faction called "random insectoid", which has a 50-50 chance of turning into either the vanilla Insect Geneline faction of the VFE Insect Hive faction.
 
 ## Use, Distribution, and Licensing
 Random Factions Rimworld Mod is licensed under the [Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/) Creative Commons License.
