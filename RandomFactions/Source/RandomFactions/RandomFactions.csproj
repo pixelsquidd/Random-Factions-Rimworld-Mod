@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="copy /B /Y &quot;$(ProjectDir)bin\Debug\.netframework,version=4.7.2\$(AssemblyName).dll&quot; &quot;$(ProjectDir)..\..\Assemblies&quot;" />
+    <Exec Command="copy /B /Y &quot;$(ProjectDir)bin\Debug\.netframework,version=4.7.2\$(AssemblyName).dll&quot; &quot;$(ProjectDir)..\..\1.4\Assemblies&quot;" />
   </Target>
 
 </Project>
