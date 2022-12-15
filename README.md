@@ -63,10 +63,9 @@ You can play on a rim world inhabited almost exclusively by anthropomorphic anim
 * [Biotech Expansion - Mythic](https://steamcommunity.com/sharedfiles/filedetails/?id=2883216840)
 
 ### Unified World:
-Imagine landing on a rim world where 3 global civilizations compete for your influence or resources. 
+Imagine landing on a rim world dominated by two rival factions, one of whom sees you as a natural ally while the other sees you as a threat, yet both are threatened by a global crime syndicate. 
 
 Start a new colony with only the following factions in the faction list:
-* 1 random faction
 * 1 random civil faction
 * 1 random rough faction
 * 1 random pirate faction
