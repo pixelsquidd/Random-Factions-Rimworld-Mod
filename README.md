@@ -32,12 +32,26 @@ Finally, after you start your game, you will be able to see the new factions in 
 
 ![Screenshot-03](https://user-images.githubusercontent.com/1922739/205418737-33468ccb-c2fb-407c-aa3a-68f213645c2a.png)
 
-## Factions
+## Features
+
+### Random Factions
+
 Note: Hidden factions such as Mechanoids Hive, Insect Genelineand the Empire will *not* be randomly selected
-- Random Faction: replaced with a randomly selected faction
-- Random Civil Faction: replaced with a randomly selected neutral faction
-- Random Rough Faction: replaced with a randomly selected aggressive faction
-- Random Pirate Faction: replaced with a randomly selected permanently hostile faction
+* Random Faction: replaced with a randomly selected faction
+* Random Civil Faction: replaced with a randomly selected neutral faction
+* Random Rough Faction: replaced with a randomly selected aggressive faction
+* Random Pirate Faction: replaced with a randomly selected permanently hostile faction
+
+### Random Xenotypes
+
+If you have Biotech DLC installed, then not only do random factions pick a faction when the game starts, but may also substitute the baseliner humans for a randomly selected xenotype.
+
+For example, if you have both [VFE Vikings](https://steamcommunity.com/sharedfiles/filedetails/?id=2231295285) and the [Mythic Biotech Expansion](https://steamcommunity.com/sharedfiles/filedetails/?id=2883216840) mods installed, then there is a chance that your world may have *Dragon Vikings*!
+
+### Mod Options
+You can change the settings for Random Factions in the mod options menu (Options -> Mod Options -> Random Factions)
+* Re-organise Factions: if active, then when you create a new colony, the world faction screen wil be pre-populated with a list of random factions instead of all factions
+* % Xenotype Fequency: percentage chance of assigning a random xenotype to a randomly chosen baseliner faction (only applies if Biotech DLC is also installed)
 
 ## Integration With Other Mods
 Any mod that adds a new faction will automatically be detected by Random Factions and will randomly be added to the world when you use the random selection factions described above.
@@ -63,10 +77,9 @@ You can play on a rim world inhabited almost exclusively by anthropomorphic anim
 * [Biotech Expansion - Mythic](https://steamcommunity.com/sharedfiles/filedetails/?id=2883216840)
 
 ### Unified World:
-Imagine landing on a rim world where 3 global civilizations compete for your influence or resources. 
+Imagine landing on a rim world dominated by two rival factions, one of whom sees you as a natural ally while the other sees you as a threat, yet both are threatened by a global crime syndicate. 
 
 Start a new colony with only the following factions in the faction list:
-* 1 random faction
 * 1 random civil faction
 * 1 random rough faction
 * 1 random pirate faction
@@ -91,6 +104,11 @@ And then start a new colony with the following factions or a truly unique game w
 * 8 random factions
 * random mechanoid
 * random insectoid
+
+## Game Saves
+Installing Random Factions will have no effect on existing game saves. You will have to create a new game to utilize the random factions mechanics.
+
+In general, uninstalling any mod which adds a faction or xenotype used in your game save can cause data corruption. Random Factions itself can only damage your game save if you have Biotech DLC installed and a xenotype version of a basliner mod was added to your world. In this case, those random xenotype factions will stop working when you load the game without Random Factions.
 
 ## Use, Distribution, and Licensing
 Random Factions Rimworld Mod is licensed under the [Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/) Creative Commons License.
