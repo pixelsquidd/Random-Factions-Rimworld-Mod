@@ -1,9 +1,13 @@
-﻿using HugsLib.Logs;
+﻿using HarmonyLib;
+using HugsLib.Logs;
+using HugsLib.Settings;
 using HugsLib.Utils;
 using RimWorld;
 using RimWorld.Planet;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Text;
 using UnityEngine.SceneManagement;
 using Verse;
 
@@ -12,7 +16,37 @@ namespace RandomFactions
 
     public class RandomFactionsMod : HugsLib.ModBase
     {
+        private SettingHandle<bool> removeOtherFactions;
+        private SettingHandle<int> xenoPercentHandle;
+        private Dictionary<FactionDef, int> zeroCountRecord = new Dictionary<FactionDef, int>();
+        private Dictionary<FactionDef, int> randCountRecord = new Dictionary<FactionDef, int>();
+        private Dictionary<string, FactionDef> patchedXenotypeFactions = new Dictionary<string, FactionDef>();
         public static string RANDOM_CATEGORY_NAME = "Random";
+        public static string XENOPATCH_CATEGORY_NAME = "Xenopatch";
+
+        public static bool isXenotypePatchable(FactionDef def)
+        {
+            return !(def.isPlayer || def.hidden || def.maxConfigurableAtWorldCreation <= 1 
+                || RANDOM_CATEGORY_NAME.EqualsIgnoreCase(def.categoryTag)
+                || (def.xenotypeSet != null && def.xenotypeSet.BaselinerChance < 0.65));
+        }
+
+        public static string defListToString(IEnumerable<Def> allDefs)
+        {
+            string s = "";
+            foreach (var def in allDefs)
+            {
+                if (s.Length > 0) { s += ", "; }
+                s += def.defName;
+            }
+            return s;
+        }
+
+        public static string xenoFactionDefName(XenotypeDef xdef, FactionDef fdef)
+        {
+            return xdef.defName + fdef.defName;
+        }
+
         public RandomFactionsMod() {
             // constructor (invoked by reflection, do not add parameters)
             Logger.Trace("RandomFactions constructed");
@@ -85,6 +119,195 @@ Called after all Defs are loaded.
 This happens when game loading has completed, after Initialize is called. This is a good time to inject any Random defs. Make sure you call HugsLib.InjectedDefHasher.GiveShortHasToDef on any defs you manually instantiate to avoid def collisions (it's a vanilla thing).
 Since A17 it no longer matters where you initialize your settings handles, since the game automatically restarts both when the mod configuration or the language changes. This means that both Initialize and DefsLoaded are only ever called once per ModBase instance.*/
             base.DefsLoaded();
+
+            // add mod options
+            removeOtherFactions = Settings.GetHandle<bool>(
+            "removeOtherFactions",
+            "Re-organise Factions",
+            "Removes all non-random factions from the starting faction list in the New World screen during New Colony creation.",
+            true);
+
+            if (removeOtherFactions.Value == true) {
+                zeroCountFactionDefs();
+            }
+
+            this.xenoPercentHandle = Settings.GetHandle<int>("PercentXenotype", "% Xenotype Fequency", "If Biotech DLC is detected, then random factions will substitute baseliners for xenotypes this percent of the time (default 15%)", 15, Validators.IntRangeValidator(0, 100));
+            //xenoPercentHandle.ValueChanged += handle => {
+            //    Logger.Message("Xenotype changed to " + xenoPercentHandle.Value);
+            //};
+
+            // add procedural defs
+            // if Biotech DLC is installed, patch-in xeno versions of human factions
+            if (Verse.ModsConfig.BiotechActive)
+            {
+                createXenoFactions();
+                Logger.Message("Created Xenotype versions of Baseliner factions.");
+                // if VFE mods are installed, need to tell VFE Core to update the cache or there will be a Dictionary key error
+                // call VFECore.ScenPartUtility.SetCache() by reflection (which is tricky because it is in a different assdembly)
+                bool done = false;
+                foreach (Assembly asmb in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    if (done) break;
+                    foreach (Type classType in asmb.GetTypes())
+                    {
+                        if (done) break;
+                        if ("ScenPartUtility".Equals(classType.Name))
+                        {
+                            if (classType != null)
+                            {
+                                //Logger.Message(string.Format("Found {0}.{1}", asmb.FullName, classType.Name));
+                                var methodHandle = classType.GetMethod("SetCache");
+                                if (methodHandle != null)
+                                {
+                                    methodHandle.Invoke(null, null);
+                                    Logger.Message("Invoked VFECore.ScenPartUtility.SetCache() to refresh VFE internal cache");
+                                    done = true;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                
+            }
+        }
+
+        private void createXenoFactions()
+        {
+            var newDefs = new List<FactionDef>();
+            foreach(var def in DefDatabase<FactionDef>.AllDefs)
+            {
+                var oldDefName = def.defName;
+                if (isXenotypePatchable(def))
+                {
+                    foreach (var xenodef in DefDatabase<XenotypeDef>.AllDefs) {
+                        var defCopy = cloneDef(def);
+                        defCopy.defName = xenoFactionDefName(xenodef, defCopy);
+                        defCopy.categoryTag = XENOPATCH_CATEGORY_NAME;
+                        defCopy.label = xenodef.label + " " + defCopy.label;
+                        var xenoChance = new XenotypeChance(xenodef, 1.0f);
+                        List<XenotypeChance> xenotypeChances = new List<XenotypeChance>
+                        {
+                            xenoChance
+                        };
+                        var newXenoSet = new XenotypeSet();
+                        // I think Ludeon Studios hates procedural generation. Why make XenotypeSet read-only with no constructor?!
+                        // Need to use reflection voodoo to modify private variable (whose name might change in a future version)
+                        FieldInfo[] fields = typeof(XenotypeSet).GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+                        foreach (FieldInfo field in fields)
+                        {
+                            if (field.FieldType.IsAssignableFrom(xenotypeChances.GetType()))
+                            {
+                                field.SetValue(newXenoSet, xenotypeChances);
+                            }
+                        }
+                        defCopy.xenotypeSet = newXenoSet;
+                        defCopy.maxConfigurableAtWorldCreation = 0; // NOTE:Faction Control messes with this number
+                        defCopy.hidden = true; // will unhide at game load time
+                        newDefs.Add(defCopy);
+                        //Logger.Trace(string.Format("Generated procedural faction def {0} has xenotype set: {1}", defCopy.defName, XenotypeSetToString(defCopy.xenotypeSet)));
+                    }
+                }
+            }
+            foreach (var def in newDefs)
+            {
+
+                patchedXenotypeFactions.Add(def.defName, def);
+                DefDatabase<FactionDef>.Add(def);
+            }
+        }
+
+        private FactionDef cloneDef(FactionDef def)
+        {
+            // use reflection magic to do a 1-deep clone of the def
+            FactionDef cpy = new FactionDef();
+            reflectionCopy(def, cpy);
+            cpy.debugRandomId = (ushort)(def.debugRandomId + 1);
+            return cpy;
+        }
+
+        private void reflectionCopy(object A, object B)
+        {
+            FieldInfo[] fields = A.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+            foreach (FieldInfo field in fields)
+            {
+                var value = field.GetValue(A);
+                field.SetValue(B, value);
+            }
+            /*
+            PropertyInfo[] props = A.GetType().GetProperties();
+            foreach(PropertyInfo prop in props)
+            {
+                var value = prop.GetValue(A, null);
+                prop.SetValue(B, value, null);
+            }*/
+        }
+
+        public override void SettingsChanged()
+        {
+            /*
+Called after the player closes the Mod Settings dialog after changing any setting.
+Note, that the setting changed may belong to another mod.*/
+            base.SettingsChanged();
+            if (removeOtherFactions.Value == true)
+            {
+                zeroCountFactionDefs();
+            } else
+            {
+                undoZeroCountFactionDefs();
+            }
+        }
+
+        private void zeroCountFactionDefs()
+        {
+            /*
+            var hasVFEMechanoids = false;
+            var hasVFEInsects = false;
+            bool hasVFEMechanoids = ModLister.GetActiveModWithIdentifier("OskarPotocki.VFE.Mechanoid") != null;
+            foreach (var m in Verse.ModLister.AllInstalledMods)
+            {
+                if (m.PackageId.EqualsIgnoreCase("OskarPotocki.VFE.Mechanoid")) { hasVFEMechanoids = true; }
+                if (m.PackageId.EqualsIgnoreCase("OskarPotocki.VFE.Insectoid")) { hasVFEInsects = true; }
+            }*/
+            foreach (var def in DefDatabase<FactionDef>.AllDefs)
+            {
+                if (!def.hidden && !def.isPlayer && !RANDOM_CATEGORY_NAME.EqualsIgnoreCase(def.categoryTag))
+                {
+                    zeroCountRecord[def] = def.startingCountAtWorldCreation; // save for later undo operation
+                    def.startingCountAtWorldCreation = 0;
+                }/*
+                else if ("Mechanoid".EqualsIgnoreCase(def.defName) && hasVFEMechanoids)
+                {
+                    def.startingCountAtWorldCreation = 0;
+                }
+                else if ("Insect".EqualsIgnoreCase(def.defName) && hasVFEInsects)
+                {
+                    def.startingCountAtWorldCreation = 0;
+                }*/
+            }
+
+            foreach (var def in randCountRecord.Keys)
+            {
+                var val = randCountRecord[def];
+                def.startingCountAtWorldCreation = val;
+            }
+        }
+
+        private void undoZeroCountFactionDefs()
+        {
+            foreach (var def in zeroCountRecord.Keys)
+            {
+                var val = zeroCountRecord[def];
+                def.startingCountAtWorldCreation = val;
+            }
+            foreach (var def in DefDatabase<FactionDef>.AllDefs)
+            {
+                if (RANDOM_CATEGORY_NAME.EqualsIgnoreCase(def.categoryTag))
+                {
+                    randCountRecord[def] = def.startingCountAtWorldCreation;
+                    def.startingCountAtWorldCreation = 0;
+                }
+            }
         }
 
         public override void Update()
@@ -126,6 +349,24 @@ Called after a Unity scene change. Receives a UnityEngine.SceneManagement.Scene 
 There are two scenes in Rimworld- Entry and Play, which stand for the menu, and the game itself. Use Verse.GenScene to check which scene has been loaded.
 Note, that not everything may be initialized after the scene change, and the game may be in the middle of map loading or generation.*/
             base.SceneLoaded(scene);
+            if (Verse.GenScene.InEntryScene)
+            {
+                hideXenoPatches(false);
+            } else
+            {
+                hideXenoPatches(true);
+            }
+        }
+
+        private void hideXenoPatches(bool hide)
+        {
+            foreach(var def in DefDatabase<FactionDef>.AllDefs)
+            {
+                if(XENOPATCH_CATEGORY_NAME.EqualsIgnoreCase(def.categoryTag))
+                {
+                    def.hidden = hide;
+                }
+            }
         }
 
         public override void WorldLoaded()
@@ -139,26 +380,28 @@ This is only called after the game has started, not on the "select landing spot"
             base.WorldLoaded();
             Logger.Message("World loaded! Applying Random generation rules to factions...");
             var world = Find.World;
-            string facdef_list = "";
-            foreach(var fdef in DefDatabase<FactionDef>.AllDefs)
+            Logger.Trace(string.Format("Found {0} faction definitions: {1}", DefDatabase<FactionDef>.DefCount,
+                defListToString(DefDatabase<FactionDef>.AllDefs)));
+            var hasRoyalty = Verse.ModsConfig.RoyaltyActive;
+            var hasIdeology = Verse.ModsConfig.IdeologyActive;
+            var hasBiotech = Verse.ModsConfig.BiotechActive;
+            if (hasBiotech)
             {
-                if(facdef_list.Length > 0) { facdef_list += ", "; }
-                facdef_list += fdef.defName;
+                Logger.Trace(string.Format("Found {0} xenotype definitions: {1}", DefDatabase<XenotypeDef>.DefCount,
+                defListToString(DefDatabase<XenotypeDef>.AllDefs)));
             }
-            Logger.Trace(string.Format("Found {0} faction definitions: {1}", DefDatabase<FactionDef>.DefCount, facdef_list));
-            var hasRoyalty = false;
-            var hasIdeology = false;
-            var hasBiotech = false;
-            foreach (var m in Verse.ModLister.AllInstalledMods)
-            {
-                if (m.PackageId.EqualsIgnoreCase("ludeon.rimWorld.royalty")) { hasRoyalty = true; }
-                if (m.PackageId.EqualsIgnoreCase("ludeon.rimWorld.ideology")) { hasIdeology = true; }
-                if (m.PackageId.EqualsIgnoreCase("ludeon.rimWorld.biotech")) { hasBiotech = true; }
-                //Logger.Warning(string.Format("Found mod: {0} ({1}, IsCoreMod={2}, Expansion={3}, Active={4})", m.Name, m.PackageId, m.IsCoreMod, m.Expansion, m.Active));
-            }
+
             // load save data store (if it exists)
             //var dataSore = Find.World.GetComponent<RandFacDataStore>();
-            RandomFactionGenerator fgen = new RandomFactionGenerator(world, DefDatabase<FactionDef>.AllDefs, hasRoyalty, hasIdeology, hasBiotech, Logger);
+            // ignore generated factions when choosing random factions
+            var ignoreList = new List<string>();
+            foreach(var defName in patchedXenotypeFactions.Keys)
+            {
+                ignoreList.Add(defName);
+            }
+            int xenoPercent = xenoPercentHandle.Value;
+            if (!hasBiotech) xenoPercent = 0;
+            RandomFactionGenerator fgen = new RandomFactionGenerator(world, xenoPercent, DefDatabase<FactionDef>.AllDefs, ignoreList.ToArray(), hasRoyalty, hasIdeology, hasBiotech, Logger);
             var allFactionList = new List<Faction>();
             var replaceList = new List<Faction>();
             foreach (var fac in Find.FactionManager.AllFactions) { allFactionList.Add(fac); }
@@ -188,7 +431,16 @@ This is only called after the game has started, not on the "select landing spot"
                 else if (pfFac.def.defName.EqualsIgnoreCase("RF_RandomTradeFaction"))
                 {
                     fgen.replaceWithRandomNonHiddenTraderFaction(pfFac);
-                } else
+                }
+                else if (pfFac.def.defName.EqualsIgnoreCase("RF_RandomMechanoid"))
+                {
+                    fgen.replaceWithRandomNamedFaction(pfFac, "Mechanoid", "VFE_Mechanoid");
+                }
+                else if (pfFac.def.defName.EqualsIgnoreCase("RF_RandomInsectoid"))
+                {
+                    fgen.replaceWithRandomNamedFaction(pfFac, "Insect", "VFEI_Insect");
+                }
+                else
                 {
                     Logger.Warning("Faction defName {0} not recognized! Cannot replace faction {1} ({2})", pfFac.def.defName, pfFac.Name, pfFac.def.defName);
                 }
@@ -239,14 +491,6 @@ Will not be called on the "select landing spot" world map.
             base.Tick(currentTick);
         }
 
-        public override void SettingsChanged()
-        {
-            /*
-Called after the player closes the Mod Settings dialog after changing any setting.
-Note, that the setting changed may belong to another mod.*/
-            base.SettingsChanged();
-        }
-
         public override void ApplicationQuit()
         {
             /*
@@ -256,5 +500,18 @@ Modified mod settings are automatically saved after this call.
 */
             base.ApplicationQuit();
         }
+        private string XenotypeSetToString(XenotypeSet xs)
+        {
+            if (xs == null) return "N/A";
+            string s = "";
+            for (int n = 0; n < xs.Count; n++)
+            {
+                var x = xs[n];
+                if (s.Length > 0) { s += ", "; }
+                s += ((int)(x.chance * 100)) + "% " + x.xenotype.defName;
+            }
+            return s;
+        }
     }
+
 }

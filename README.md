@@ -39,6 +39,59 @@ Note: Hidden factions such as Mechanoids Hive, Insect Genelineand the Empire wil
 - Random Rough Faction: replaced with a randomly selected aggressive faction
 - Random Pirate Faction: replaced with a randomly selected permanently hostile faction
 
+## Integration With Other Mods
+Any mod that adds a new faction will automatically be detected by Random Factions and will randomly be added to the world when you use the random selection factions described above.
+
+In addition, the following mods unlock extra features when installed alongside Random Factions:
+
+### Faction Control
+Random Factions does not interfere with [Faction Control](https://steamcommunity.com/sharedfiles/filedetails/?id=2882785581), but changing the faction frequencies in Faction Control will have no affect on the chance of a faction being added by Random Factions.
+
+### Vanilla Factions Expanded - Mechanoids
+If [VFE Mechanoids](https://steamcommunity.com/sharedfiles/filedetails/?id=2329011599) is also installed, then Random Factions will add another random faction called "random mechanoid", which has a 50-50 chance of turning into either the vanilla Mechanoid Hive faction of the VFE Mechanoid Swarm faction.
+
+### Vanilla Factions Expanded - Insectoids
+If [VFE Insectoids](https://steamcommunity.com/sharedfiles/filedetails/?id=2149755445) is also installed, then Random Factions will add another random faction called "random insectoid", which has a 50-50 chance of turning into either the vanilla Insect Geneline faction of the VFE Insect Hive faction.
+
+## Fun Things You Can Do With This Mod
+
+### Furry World
+You can play on a rim world inhabited almost exclusively by anthropomorphic animal people. Just install the following mods, and then go to Options -> Mod Settings -> Random Factions and set "% Xenotype Fequency" to 100:
+* [Random Factions](https://steamcommunity.com/sharedfiles/filedetails/?id=2896649114)
+* [Biotech Expanded Core](https://steamcommunity.com/sharedfiles/filedetails/?id=2884018485)
+* [Biotech Expansion - Mammalia](https://steamcommunity.com/sharedfiles/filedetails/?id=2878084431)
+* [Biotech Expansion - Mythic](https://steamcommunity.com/sharedfiles/filedetails/?id=2883216840)
+
+### Unified World:
+Imagine landing on a rim world where 3 global civilizations compete for your influence or resources. 
+
+Start a new colony with only the following factions in the faction list:
+* 1 random faction
+* 1 random civil faction
+* 1 random rough faction
+* 1 random pirate faction
+* Mechanoid hive
+* Insect geneline
+
+### I Love Randy
+If you truly love Randy Random, install the following mods:
+* [Random Factions](https://steamcommunity.com/sharedfiles/filedetails/?id=2896649114)
+* [Simple Industrial Factions](https://steamcommunity.com/sharedfiles/filedetails/?id=2249680022)
+* [Vanilla Expanded Framework](https://steamcommunity.com/workshop/filedetails/?id=2023507013)
+* [Vanilla Factions Expanded - Vikings](https://steamcommunity.com/sharedfiles/filedetails/?id=2231295285)
+* [Vanilla Factions Expanded - Settlers](https://steamcommunity.com/sharedfiles/filedetails/?id=2052918119)
+* [Vanilla Factions Expanded - Medieva](https://steamcommunity.com/sharedfiles/filedetails/?id=2023513450)
+* [Vanilla Factions Expanded - Classical](https://steamcommunity.com/sharedfiles/filedetails/?id=2787850474)
+* [Vanilla Factions Expanded - Pirates](https://steamcommunity.com/sharedfiles/filedetails/?id=2723801948)
+* [Vanilla Races Expanded - Hussar](https://steamcommunity.com/sharedfiles/filedetails/?id=2893586390)
+* [Vanilla Factions Expanded - Mechanoids](https://steamcommunity.com/sharedfiles/filedetails/?id=2329011599)
+* [Vanilla Factions Expanded - Insectoids](https://steamcommunity.com/sharedfiles/filedetails/?id=2149755445)
+
+And then start a new colony with the following factions or a truly unique game world every time:
+* 8 random factions
+* random mechanoid
+* random insectoid
+
 ## Use, Distribution, and Licensing
 Random Factions Rimworld Mod is licensed under the [Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/) Creative Commons License.
 
