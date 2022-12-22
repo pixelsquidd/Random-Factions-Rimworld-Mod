@@ -1,7 +1,35 @@
-﻿using HarmonyLib;
+﻿/*
+# Random Factions Rimworld Mod
+Author: Dr. Plantabyte (aka Christopher C. Hall)
+## CC BY 4.0
+
+This work is licensed on the [Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/) Creative Commons License.
+
+
+### You are free to:
+
+* **Share** — copy and redistribute the material in any medium or format
+* **Adapt** — remix, transform, and build upon the material
+    for any purpose, even commercially.
+
+
+### Under the following terms:
+
+* **Attribution** — You must give appropriate credit, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
+
+* **No additional restrictions** — You may not apply legal terms or technological measures that legally restrict others from doing anything the license permits.
+
+### Guarentees:
+
+The licensor cannot revoke these freedoms as long as you follow the license terms.
+ */
+
+
+using HarmonyLib;
 using HugsLib.Logs;
 using HugsLib.Settings;
 using HugsLib.Utils;
+using RandomFactions.filters;
 using RimWorld;
 using RimWorld.Planet;
 using System;
@@ -27,8 +55,11 @@ namespace RandomFactions
         public static bool isXenotypePatchable(FactionDef def)
         {
             return !(def.isPlayer || def.hidden || def.maxConfigurableAtWorldCreation <= 1 
-                || RANDOM_CATEGORY_NAME.EqualsIgnoreCase(def.categoryTag)
-                || (def.xenotypeSet != null && def.xenotypeSet.BaselinerChance < 0.65));
+                || RANDOM_CATEGORY_NAME.EqualsIgnoreCase(def.categoryTag));
+        }
+        public static bool isXenotypeReplaceable(FactionDef def)
+        {
+            return isXenotypePatchable(def) && (def.xenotypeSet == null || def.xenotypeSet.BaselinerChance >= 0.65);
         }
 
         public static string defListToString(IEnumerable<Def> allDefs)
@@ -167,8 +198,9 @@ Since A17 it no longer matters where you initialize your settings handles, since
                         }
                     }
                 }
+                // if VFE is installed, then we also need to invoke Find.World.GetComponent<NewFactionSpawningState>().Ignore(factionDef); 
+                // to keep it from pestering the player about 100+ new factions being added to the game
 
-                
             }
         }
 
@@ -380,6 +412,7 @@ This is only called after the game has started, not on the "select landing spot"
             base.WorldLoaded();
             Logger.Message("World loaded! Applying Random generation rules to factions...");
             var world = Find.World;
+            fixVFENewFactionPopups(world);
             Logger.Trace(string.Format("Found {0} faction definitions: {1}", DefDatabase<FactionDef>.DefCount,
                 defListToString(DefDatabase<FactionDef>.AllDefs)));
             var hasRoyalty = Verse.ModsConfig.RoyaltyActive;
@@ -448,7 +481,6 @@ This is only called after the game has started, not on the "select landing spot"
             Logger.Message(string.Format("...Random faction generation complete! Replaced {0} factions.", replaceList.Count));
 
         }
-
         public override void MapComponentsInitializing(Map map)
         {
             /*
@@ -512,6 +544,62 @@ Modified mod settings are automatically saved after this call.
             }
             return s;
         }
+
+
+
+        private void fixVFENewFactionPopups(World world)
+        {
+            IEnumerable<FactionDef> patchFacs = this.patchedXenotypeFactions.Values;
+            IEnumerable<FactionDef> randFacs = FactionDefFilter.filterFactionDefs(
+                DefDatabase<FactionDef>.AllDefs, new CategoryTagFactionDefFilter(RANDOM_CATEGORY_NAME));
+            // invoke Find.World.GetComponent<VFECore.NewFactionSpawningState>().Ignore(factionDef) 
+            // for all off-books factions or the player will be buried in pop-up spam
+            Type NewFactionSpawningStateClassType = null;
+            MethodInfo IgnoreMethodHandle = null;
+            bool done = false;
+            foreach (Assembly asmb in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                if (done) break;
+                foreach (Type classType in asmb.GetTypes())
+                {
+                    if (done) break;
+                    if ("NewFactionSpawningState".Equals(classType.Name))
+                    {
+                        //Logger.Message(string.Format("Found {0}.{1}", asmb.FullName, classType.Name));
+                        var methodHandles = classType.GetMethods(); // calling classType.GetMethod("Ignore") throws ambiguous match exception
+                        // looking for VFECore.NewFactionSpawningState.Ignore(IEnumerable<FactionDef> factions)
+                        foreach (var methodHandle in methodHandles) { 
+                            ParameterInfo[] methParams = methodHandle.GetParameters();
+                            //string t = "";
+                            //foreach (var param in methParams) { t += " " + param.ParameterType.Name; }
+                            //Logger.Message(string.Format("Found {0}.{1}.{2}({3})", asmb.FullName, classType.Name, methodHandle.Name, t));
+                            if ("Ignore".Equals(methodHandle.Name)
+                                && methParams.Length == 1
+                                && methParams[0].ParameterType.IsAssignableFrom(patchFacs.GetType()))
+                            {
+                                NewFactionSpawningStateClassType = classType;
+                                IgnoreMethodHandle = methodHandle;
+                                done = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            if(NewFactionSpawningStateClassType != null && IgnoreMethodHandle != null)
+            {
+                // VFE installed and WorldComponent VFECore.NewFactionSpawningState found
+                // tell VFE to ignore patch factions
+                object vfecomp = world.GetComponent(NewFactionSpawningStateClassType);
+                if (vfecomp != null)
+                {
+                    IgnoreMethodHandle.Invoke(vfecomp, new object[] { randFacs });
+                    IgnoreMethodHandle.Invoke(vfecomp, new object[] { patchFacs });
+                    Logger.Message("Invoked World.GetComponent<VFECore.NewFactionSpawningState>().Ignore(...) to tell VFE to ignore random and xenotype-patched faction defs");
+                }
+            }
+        }
+
     }
 
 }
