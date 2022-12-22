@@ -61,6 +61,9 @@ In addition, the following mods unlock extra features when installed alongside R
 ### Faction Control
 Random Factions does not interfere with [Faction Control](https://steamcommunity.com/sharedfiles/filedetails/?id=2882785581), but changing the faction frequencies in Faction Control will have no affect on the chance of a faction being added by Random Factions.
 
+### Vanilla Framework Expanded - Core
+As of version 1.4.2, Random Factions registers it's temporary factions as ignorable with VFE Core to prevent pop-up spam when you add Random Factions mid-game.
+
 ### Vanilla Factions Expanded - Mechanoids
 If [VFE Mechanoids](https://steamcommunity.com/sharedfiles/filedetails/?id=2329011599) is also installed, then Random Factions will add another random faction called "random mechanoid", which has a 50-50 chance of turning into either the vanilla Mechanoid Hive faction of the VFE Mechanoid Swarm faction.
 
