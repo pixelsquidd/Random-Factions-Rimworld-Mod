@@ -231,7 +231,7 @@ public class RandomFactionGenerator
 	{
         var relations = defaultRelations(def, existingFactions);
         Faction fac = FactionGenerator.NewGeneratedFactionWithRelations(def, relations, def.hidden);
-		return fac;
+        return fac;
     }
 
     private int defaultGoodwill(FactionDef def)
