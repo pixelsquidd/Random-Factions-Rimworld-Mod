@@ -303,7 +303,8 @@ Note, that the setting changed may belong to another mod.*/
             }*/
             foreach (var def in DefDatabase<FactionDef>.AllDefs)
             {
-                if (!def.hidden && !def.isPlayer && !RANDOM_CATEGORY_NAME.EqualsIgnoreCase(def.categoryTag))
+                if (!def.hidden && !def.isPlayer && !RANDOM_CATEGORY_NAME.EqualsIgnoreCase(def.categoryTag)
+                    && !"Empire".EqualsIgnoreCase(def.defName))
                 {
                     zeroCountRecord[def] = def.startingCountAtWorldCreation; // save for later undo operation
                     def.startingCountAtWorldCreation = 0;
