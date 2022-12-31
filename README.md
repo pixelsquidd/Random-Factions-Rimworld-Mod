@@ -34,6 +34,7 @@ Finally, after you start your game, you will be able to see the new factions in 
 
 ## Mod Options
 From the main menu screen, click **Options -> Mod options -> Random Factions** to see the options for this mod.
+
 ![Screenshot-06b](https://user-images.githubusercontent.com/1922739/210157641-7bc55fd3-f82c-453e-a7a1-fecf10a2daef.png)
 
 * **Re-organize Factions:** If checked, then the *New Colony* screen will start with only random factions instead of standard factions (checked by default)
