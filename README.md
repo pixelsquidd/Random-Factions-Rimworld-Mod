@@ -32,6 +32,14 @@ Finally, after you start your game, you will be able to see the new factions in 
 
 ![Screenshot-03](https://user-images.githubusercontent.com/1922739/205418737-33468ccb-c2fb-407c-aa3a-68f213645c2a.png)
 
+## Mod Options
+From the main menu screen, click **Options -> Mod options -> Random Factions** to see the options for this mod.
+![Screenshot-06b](https://user-images.githubusercontent.com/1922739/210157641-7bc55fd3-f82c-453e-a7a1-fecf10a2daef.png)
+
+* **Re-organize Factions:** If checked, then the *New Colony* screen will start with only random factions instead of standard factions (checked by default)
+* **% Xenotype Frequency:** ()if you do not have Biotech DLC installed, this option does nothing) 0-100% control of how often to convert a baseliner faction into a random xenotype factions (default 15%)
+* **Allow Duplicate Factions:** If checked, then the same faction may be chosen multiple times, e.g. your would could end up with 3 different Rough Outlander Factions (unchecked by default)
+
 ## Features
 
 ### Random Factions
