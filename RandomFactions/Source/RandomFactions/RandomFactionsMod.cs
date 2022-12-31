@@ -46,6 +46,7 @@ namespace RandomFactions
     {
         private SettingHandle<bool> removeOtherFactions;
         private SettingHandle<int> xenoPercentHandle;
+        private SettingHandle<bool> allowDuplicates;
         private Dictionary<FactionDef, int> zeroCountRecord = new Dictionary<FactionDef, int>();
         private Dictionary<FactionDef, int> randCountRecord = new Dictionary<FactionDef, int>();
         private Dictionary<string, FactionDef> patchedXenotypeFactions = new Dictionary<string, FactionDef>();
@@ -202,6 +203,14 @@ Since A17 it no longer matters where you initialize your settings handles, since
                 // to keep it from pestering the player about 100+ new factions being added to the game
 
             }
+
+            // allow or disallow picking factions already added:
+            allowDuplicates = Settings.GetHandle<bool>(
+            "allowDuplicates",
+            "Allow Duplicate Factions",
+            "Allows Random Factions to randomly add a faction that already exists in the world.",
+            false);
+            
         }
 
         private void createXenoFactions()
@@ -452,27 +461,27 @@ This is only called after the game has started, not on the "select landing spot"
             {
                 if (pfFac.def.defName.EqualsIgnoreCase("RF_RandomFaction"))
                 {
-                    fgen.replaceWithRandomNonHiddenFaction(pfFac);
+                    fgen.replaceWithRandomNonHiddenFaction(pfFac, allowDuplicates.Value);
                 }
                 else if (pfFac.def.defName.EqualsIgnoreCase("RF_RandomPirateFaction"))
                 {
-                    fgen.replaceWithRandomNonHiddenEnemyFaction(pfFac);
+                    fgen.replaceWithRandomNonHiddenEnemyFaction(pfFac, allowDuplicates.Value);
                 }
                 else if (pfFac.def.defName.EqualsIgnoreCase("RF_RandomRoughFaction"))
                 {
-                    fgen.replaceWithRandomNonHiddenWarlordFaction(pfFac);
+                    fgen.replaceWithRandomNonHiddenWarlordFaction(pfFac, allowDuplicates.Value);
                 }
                 else if (pfFac.def.defName.EqualsIgnoreCase("RF_RandomTradeFaction"))
                 {
-                    fgen.replaceWithRandomNonHiddenTraderFaction(pfFac);
+                    fgen.replaceWithRandomNonHiddenTraderFaction(pfFac, allowDuplicates.Value);
                 }
                 else if (pfFac.def.defName.EqualsIgnoreCase("RF_RandomMechanoid"))
                 {
-                    fgen.replaceWithRandomNamedFaction(pfFac, "Mechanoid", "VFE_Mechanoid");
+                    fgen.replaceWithRandomNamedFaction(pfFac, allowDuplicates.Value, "Mechanoid", "VFE_Mechanoid");
                 }
                 else if (pfFac.def.defName.EqualsIgnoreCase("RF_RandomInsectoid"))
                 {
-                    fgen.replaceWithRandomNamedFaction(pfFac, "Insect", "VFEI_Insect");
+                    fgen.replaceWithRandomNamedFaction(pfFac, allowDuplicates.Value, "Insect", "VFEI_Insect");
                 }
                 else
                 {

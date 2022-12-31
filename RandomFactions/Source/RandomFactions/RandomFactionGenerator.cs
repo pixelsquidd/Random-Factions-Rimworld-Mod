@@ -67,34 +67,34 @@ public class RandomFactionGenerator
         logger.Trace(string.Format("RandomFactionGenerator constructed with random number seed {0}", world.ConstantRandSeed));
     }
 
-    public Faction replaceWithRandomNonHiddenFaction(Faction faction)
+    public Faction replaceWithRandomNonHiddenFaction(Faction faction, bool allowDuplicates)
     {
         var priorFactions = this.world.factionManager.AllFactions;
-        var newFaction = randomNPCFaction(priorFactions);
+        var newFaction = randomNPCFaction(priorFactions, allowDuplicates);
         return replaceFaction(faction, newFaction, priorFactions);
     }
-    public Faction replaceWithRandomNonHiddenEnemyFaction(Faction faction)
+    public Faction replaceWithRandomNonHiddenEnemyFaction(Faction faction, bool allowDuplicates)
     {
         var priorFactions = this.world.factionManager.AllFactions;
-        var newFaction = randomEnemyFaction(priorFactions);
+        var newFaction = randomEnemyFaction(priorFactions, allowDuplicates);
         return replaceFaction(faction, newFaction, priorFactions);
     }
-    public Faction replaceWithRandomNonHiddenWarlordFaction(Faction faction)
+    public Faction replaceWithRandomNonHiddenWarlordFaction(Faction faction, bool allowDuplicates)
     {
         var priorFactions = this.world.factionManager.AllFactions;
-        var newFaction = randomRoughFaction(priorFactions);
+        var newFaction = randomRoughFaction(priorFactions, allowDuplicates);
         return replaceFaction(faction, newFaction, priorFactions);
     }
-    public Faction replaceWithRandomNonHiddenTraderFaction(Faction faction)
+    public Faction replaceWithRandomNonHiddenTraderFaction(Faction faction, bool allowDuplicates)
     {
         var priorFactions = this.world.factionManager.AllFactions;
-        var newFaction = randomNeutralFaction(priorFactions);
+        var newFaction = randomNeutralFaction(priorFactions, allowDuplicates);
         return replaceFaction(faction, newFaction, priorFactions);
     }
-    public Faction replaceWithRandomNamedFaction(Faction faction, params string[] validDefNames)
+    public Faction replaceWithRandomNamedFaction(Faction faction, bool allowDuplicates, params string[] validDefNames)
     {
         var priorFactions = this.world.factionManager.AllFactions;
-        var newFaction = randomNamedFaction(priorFactions, validDefNames);
+        var newFaction = randomNamedFaction(priorFactions, allowDuplicates, validDefNames);
         return replaceFaction(faction, newFaction, priorFactions);
     }
 
@@ -174,55 +174,69 @@ public class RandomFactionGenerator
         return null;
     }
 
-    public Faction randomNPCFaction(IEnumerable<RimWorld.Faction> existingFactions)
+    public Faction randomNPCFaction(IEnumerable<RimWorld.Faction> existingFactions, bool allowDuplicates)
 	{
         var fdefList = FactionDefFilter.filterFactionDefs(this.definedFactionDefs, 
             new PlayerFactionDefFilter(false), new HiddenFactionDefFilter(false), 
-            new FactionDefNameFilter(false, this.offBooksFactionDefNames)
+            new FactionDefNameFilter(false, this.offBooksFactionDefNames),
+            duplicateFilter(existingFactions, allowDuplicates)
             );
+        // if there's already one of everything, allow duplicates again
+        if (fdefList.Count <= 0) { return randomNPCFaction(existingFactions, true); }
         var fdef = drawRandomFactionDef(fdefList, existingFactions);
         return generateFactionFromDef(fdef, existingFactions);
     }
 
-    public Faction randomEnemyFaction(IEnumerable<RimWorld.Faction> existingFactions)
+    public Faction randomEnemyFaction(IEnumerable<RimWorld.Faction> existingFactions, bool allowDuplicates)
     {
         var fdefList = FactionDefFilter.filterFactionDefs(this.definedFactionDefs,
             new PlayerFactionDefFilter(false), new HiddenFactionDefFilter(false), 
             new FactionDefNameFilter(false, this.offBooksFactionDefNames), 
-            new PermanentEnemyFactionDefFilter(true)
+            new PermanentEnemyFactionDefFilter(true),
+            duplicateFilter(existingFactions, allowDuplicates)
             );
+        // if there's already one of everything, allow duplicates again
+        if (fdefList.Count <= 0) { return randomEnemyFaction(existingFactions, true); }
         var fdef = drawRandomFactionDef(fdefList, existingFactions);
         return generateFactionFromDef(fdef, existingFactions);
     }
 
-    public Faction randomRoughFaction(IEnumerable<RimWorld.Faction> existingFactions)
+    public Faction randomRoughFaction(IEnumerable<RimWorld.Faction> existingFactions, bool allowDuplicates)
     {
         var fdefList = FactionDefFilter.filterFactionDefs(this.definedFactionDefs,
             new PlayerFactionDefFilter(false), new HiddenFactionDefFilter(false), 
             new FactionDefNameFilter(false, this.offBooksFactionDefNames),
-            new PermanentEnemyFactionDefFilter(false), new NaturalEnemyFactionDefFilter(true)
+            new PermanentEnemyFactionDefFilter(false), new NaturalEnemyFactionDefFilter(true),
+            duplicateFilter(existingFactions, allowDuplicates)
             );
+        // if there's already one of everything, allow duplicates again
+        if (fdefList.Count <= 0) { return randomRoughFaction(existingFactions, true); }
         var fdef = drawRandomFactionDef(fdefList, existingFactions);
         return generateFactionFromDef(fdef, existingFactions);
     }
 
-    public Faction randomNeutralFaction(IEnumerable<RimWorld.Faction> existingFactions)
+    public Faction randomNeutralFaction(IEnumerable<RimWorld.Faction> existingFactions, bool allowDuplicates)
     {
         var fdefList = FactionDefFilter.filterFactionDefs(this.definedFactionDefs,
             new PlayerFactionDefFilter(false), new HiddenFactionDefFilter(false), 
             new FactionDefNameFilter(false, this.offBooksFactionDefNames),
-            new PermanentEnemyFactionDefFilter(false), new NaturalEnemyFactionDefFilter(false)
+            new PermanentEnemyFactionDefFilter(false), new NaturalEnemyFactionDefFilter(false),
+            duplicateFilter(existingFactions, allowDuplicates)
             );
+        // if there's already one of everything, allow duplicates again
+        if (fdefList.Count <= 0) { return randomNeutralFaction(existingFactions, true); }
         var fdef = drawRandomFactionDef(fdefList, existingFactions);
         return generateFactionFromDef(fdef, existingFactions);
     }
 
-    public Faction randomNamedFaction(IEnumerable<RimWorld.Faction> existingFactions, params string[] nameList)
+    public Faction randomNamedFaction(IEnumerable<RimWorld.Faction> existingFactions, bool allowDuplicates, params string[] nameList)
     {
         var fdefList = FactionDefFilter.filterFactionDefs(this.definedFactionDefs,
             new PlayerFactionDefFilter(false), new FactionDefNameFilter(false, this.offBooksFactionDefNames),
-            new FactionDefNameFilter(nameList)
+            new FactionDefNameFilter(nameList),
+            duplicateFilter(existingFactions, allowDuplicates)
             );
+        if (fdefList.Count <= 0) { return randomNamedFaction(existingFactions, true, nameList); }
         var fdef = drawRandomFactionDef(fdefList, existingFactions);
         return generateFactionFromDef(fdef, existingFactions);
     }
@@ -232,6 +246,22 @@ public class RandomFactionGenerator
         var relations = defaultRelations(def, existingFactions);
         Faction fac = FactionGenerator.NewGeneratedFactionWithRelations(def, relations, def.hidden);
         return fac;
+    }
+
+    private FactionDefFilter duplicateFilter(IEnumerable<Faction> existingFactions, bool allowDuplicates)
+    {
+        FactionDefFilter dupFilter;
+        if (allowDuplicates)
+        {
+            dupFilter = new FactionDefNoOpFilter();
+        }
+        else
+        {
+            var defNames = new List<string>();
+            foreach (var f in existingFactions) { defNames.Add(f.def.defName); }
+            dupFilter = new FactionDefNameFilter(false, defNames.ToArray());
+        }
+        return dupFilter;
     }
 
     private int defaultGoodwill(FactionDef def)
