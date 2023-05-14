@@ -393,10 +393,10 @@ Note, that not everything may be initialized after the scene change, and the gam
             base.SceneLoaded(scene);
             if (Verse.GenScene.InEntryScene)
             {
-                hideXenoPatches(false);
+                hideXenoPatches(true);
             } else
             {
-                hideXenoPatches(true);
+                hideXenoPatches(false);
             }
         }
 

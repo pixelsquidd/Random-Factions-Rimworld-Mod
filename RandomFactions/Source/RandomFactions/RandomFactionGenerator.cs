@@ -117,6 +117,7 @@ public class RandomFactionGenerator
             }
         }
         oldFaction.defeated = true;
+        oldFaction.hidden = true;
         this.world.factionManager.Add(newFaction);
         return newFaction;
     }
